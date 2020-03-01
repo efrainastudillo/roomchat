@@ -1,0 +1,22 @@
+#messages{
+    background-color: rgb(255, 255, 255);
+    border: 1px solid rgb(214, 214, 214);
+    border-radius: 4px;
+    height: 350px;
+    padding: 20px;
+    overflow: scroll;
+}
+
+.sent {
+    background-color: rgb(175, 240, 218);
+    border-radius: 4px;
+    padding: 10px;
+    text-align: right;
+}
+
+.received {
+    background-color: rgb(47, 47, 173);
+    color: aliceblue;
+    border-radius: 4px;
+    padding: 10px;
+}

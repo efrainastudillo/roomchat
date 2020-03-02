@@ -15,8 +15,10 @@ $(document).ready( () => {
         }).done( msg => {
             // msg = { status: 200, message: '' }
             console.log( "Data Saved: " + msg.message );
+            $('#reg-msg').append(msg.message);
         }).fail( err => {
             console.log(`Error registering user - ${err}`)
+            $('#reg-msg').append('');
         });
     }
 

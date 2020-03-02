@@ -30,6 +30,10 @@ module.exports = {
      */
     signup: (request, response) => {
         LOG(`${request.method} ${request.url}`);
+        if(request.session.userId)// there is a session currently
+        {
+            response.redirect('/chat');
+        }
         response.render('signup');
     },
     /**
@@ -42,10 +46,15 @@ module.exports = {
     validate: (request, response) => {
         LOG(`${request.method} ${request.url}`);
         const {username, password } = request.body;
+        // TODO: validate username and password
         const result = {
             status: 200,
-            message: 'User found'
+            message: ''
         };
+        if(!username || !password ){
+            result.message = 'Username or password are not defined';
+            return response.json(result);
+        }
         LOG(`Username: ${username}`);
         User.findOne({username})
         .then( user => {
@@ -91,9 +100,8 @@ module.exports = {
      */
     register: (request, response) => {
         LOG(`${request.method} ${request.url}`);
-        // console.log(`This is the body: ${request.body}`);
         const { username, email, password } = request.body;
-        // console.log(`Signup: ${username}, ${email}, ${password}`);
+        //TODO: validate username, email, password
         const result = {
             status: 200,
             message: 'User registered succesfully',

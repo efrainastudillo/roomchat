@@ -1,5 +1,6 @@
 const debug = require('debug');
-const session = require('express-session');
+const expressSession = require('express-session');
+var sharedsession = require("express-socket.io-session");
 const csv2json = require('csvtojson');
 // Routes
 const userRouter = require('./routes/user.routes');
@@ -22,43 +23,42 @@ debug.enable('chat:*');
 const LOG = debug('chat:database');
 config.config();
 const https = require('https');
+const User = require('./models/user.model');
 
+/**
+ * Create a Session
+ */
+const session = expressSession({
+    name: 'sid',
+    resave: false,
+    saveUninitialized: false,
+    secret: process.env.PRIVATE_KEY,
+    cookie: {
+        maxAge: 1000*60*5,
+        sameSite: true,
+        secure: false
+    }
+});
+app.use(session);
 /**
  * Chat Room setup
  */
-const bot = async (socket) => {
-
-    const options = {
-    hostname: 'whatever.com',
-    port: 443,
-    path: '/todos',
-    method: 'GET'
-    }
-
-    const req = http.request(options, res => {
-        console.log(`statusCode: ${res.statusCode}`)
-
-        res.on('data', d => {
-            process.stdout.write(d)
-        })
-    });
-
-    req.on('error', error => {
-    console.error(error)
-    })
-    socket.broadcast.emit('chat', msg);
-    req.end()
-};
+io.use(sharedsession(session, {
+    autoSave:true
+}));
 io.on('connection', (socket) => {
     const LOG = debug('chat:socket.io');
     LOG(`User connected ${socket.id}`);
     
     socket.on('chat', (msg) => {
-        LOG(`Message received from client: ${msg}`);
-        if(msg === 'hello') {
-            // socket.broadcast.emit('chat', 'Nigga this is a BOTOOOOOO');
+
+        const tokens = msg.msg.split('=');
+        console.log('tokens :::: ' + tokens[1]);
+        
+        if(tokens[0] === '/stock') {
             let data = '';
-            https.get('https://stooq.com/q/l/?s=aapl.us&f=sd2t2ohlcv&h&e=csv', resp => {
+            
+            https.get(`https://stooq.com/q/l/?s=${tokens[1]}&f=sd2t2ohlcv&h&e=csv`, resp => {
                 resp.on('data', chunk => {
                     data+= chunk;
                 });
@@ -72,13 +72,24 @@ io.on('connection', (socket) => {
                         for(let i = 0; i < result.length; ++i){
                             msg = `${result[i].Symbol} quote is ${result[i].Close} per share.\n`;
                         }
-                        socket.broadcast.emit('chat', msg);
+                        const date = new Date();
+                        socket.broadcast.emit('chat', {msg: msg, timestamp: date});
                     });
                 });
             });
         }
         else {
-            socket.broadcast.emit('chat', msg);
+            const username = socket.handshake.session.user.username;
+            if(username){
+                User.findOne({username: username})
+                .then( result => {
+                    if(result != null){
+                        result.messages.push({msg: msg.msg, timestamp: msg.timestamp});
+                        result.save();
+                    }
+                });
+            }
+            socket.broadcast.emit('chat', {msg: msg.msg, timestamp: msg.timestamp});
         }
     });
 
@@ -88,17 +99,7 @@ io.on('connection', (socket) => {
 });
 
 app.use('/static', express.static('./public'));
-app.use(session({
-    name: 'sid',
-    resave: false,
-    saveUninitialized: false,
-    secret: process.env.PRIVATE_KEY,
-    cookie: {
-        maxAge: 1000*60*60,
-        sameSite: true,
-        secure: false
-    }
-}));
+
 // Configure Express to use EJS
 app.set('views', path.join(process.env.ROOT_URL, 'views'));
 app.set('view engine', 'ejs');

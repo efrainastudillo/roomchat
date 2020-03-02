@@ -5,6 +5,7 @@ const UserSchema = new m.Schema({
     email: { type: String, required: true },
     firstname: { type: String, required: false },
     password: { type: String, required: true },
+    messages: [{ msg: String, timestamp: Date }],
     created_at: {type: Date, required: true, default: Date.now },
     updated_at: {type: Date, required: true, default: Date.now }
 });

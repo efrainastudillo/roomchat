@@ -23,6 +23,9 @@
         <!-- <img src="static/images/chat.png" alt="Chat Image" height="100" width="100%"> -->
         <div id="messages">
             <!-- <p class="rounded-circle">hola</p> -->
+            <% for( let index = 0; index < user.messages.length; index++ ) { %>
+                <p class='sent'><i class="fas fa-user"></i> <%-  user.messages[index].msg %> <span class='timestamp'><%- user.messages[index].timestamp %></span> </p>
+            <% } %>
         </div>
         <form>
             <div class="form-group">

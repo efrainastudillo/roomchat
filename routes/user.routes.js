@@ -6,6 +6,6 @@ router.get('/login', UserController.login); // UI Login
 router.get('/signup', UserController.signup); // UI SignUp
 router.post('/register', UserController.register); // save a user in the database
 router.post('/validate', UserController.validate); // login
-router.get('/logout', UserController.logout);
+router.get('/logout', UserController.logout);// To logout
 
 module.exports = router;

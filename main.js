@@ -1,10 +1,9 @@
 const debug = require('debug');
 const session = require('express-session');
-
+const csv2json = require('csvtojson');
 // Routes
 const userRouter = require('./routes/user.routes');
 const chatRouter = require('./routes/chat.routes');
-
 
 const express = require('express');
 const config = require('dotenv');
@@ -14,14 +13,16 @@ const redirectLogin = require('./helpers/user.helper').redirectLogin;
 
 const app = express();
 var bodyParser = require('body-parser')
-const http = require('http').createServer(app);
-const io = require('socket.io')(http);
+const http = require('http');
+
+const server = http.createServer(app);
+const io = require('socket.io')(server);
 
 debug.enable('chat:*');
 const LOG = debug('chat:database');
 config.config();
-
 const https = require('https');
+
 /**
  * Chat Room setup
  */
@@ -54,10 +55,31 @@ io.on('connection', (socket) => {
     
     socket.on('chat', (msg) => {
         LOG(`Message received from client: ${msg}`);
-        if(msg === 'hello'){
-            socket.broadcast.emit('chat', 'Nigga this is a BOTOOOOOO');
+        if(msg === 'hello') {
+            // socket.broadcast.emit('chat', 'Nigga this is a BOTOOOOOO');
+            let data = '';
+            https.get('https://stooq.com/q/l/?s=aapl.us&f=sd2t2ohlcv&h&e=csv', resp => {
+                resp.on('data', chunk => {
+                    data+= chunk;
+                });
+
+                resp.on('end', () => {
+                    //convert data to json and emit the message through socket
+                    csv2json().fromString(data)
+                    .then( result => {
+                        console.log(result);
+                        let msg = '';
+                        for(let i = 0; i < result.length; ++i){
+                            msg = `${result[i].Symbol} quote is ${result[i].Close} per share.\n`;
+                        }
+                        socket.broadcast.emit('chat', msg);
+                    });
+                });
+            });
         }
-        socket.broadcast.emit('chat', msg);
+        else {
+            socket.broadcast.emit('chat', msg);
+        }
     });
 
     socket.on('disconnect', (event) => {
@@ -91,7 +113,7 @@ options = {
 }
 mongoose.connect(process.env.DBURI, options).then((data) => {
     LOG('Database connected!!!');
-    http.listen(process.env.PORT, data => {
+    server.listen(process.env.PORT, data => {
         LOG(`Server started on port ${process.env.PORT}.`);
     });
 }).catch((err) => {

@@ -1,7 +1,10 @@
 $(document).ready(() => {
-    // console.log('Hello World');
     const socket = io();
-    
+    socket.on('connection', () => {
+        const user = localStorage.getItem('user');
+        console.log(user.user.username);
+        
+    });
     const sendMessage = (message) => {
         $('#messages').append(`<p class='sent'><i class="fas fa-user"></i> ${message}</p>`);
         socket.emit('chat', message); // send the message

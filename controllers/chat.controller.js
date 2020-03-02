@@ -4,6 +4,6 @@ const LOG = debug('chat:');
 module.exports = {
     index: (req, res) => {
         LOG(`${req.method} ${req.url}`)
-        res.render('chat');
+        res.render('chat', {user: req.session.user});
     }
 }

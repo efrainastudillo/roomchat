@@ -14,7 +14,12 @@
 
 <main>
     <div class="jumbotron">
-        <h3>Chat</h3>
+        <h4><% if (user) { %>
+         <%- user.email %> 
+         <ul class="nav navbar-nav">
+            <li><a href="/logout">Logout</a></li>
+        </ul>
+        <% } %></h4>
         <!-- <img src="static/images/chat.png" alt="Chat Image" height="100" width="100%"> -->
         <div id="messages">
             <!-- <p class="rounded-circle">hola</p> -->

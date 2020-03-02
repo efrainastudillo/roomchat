@@ -4,7 +4,9 @@ const UserSchema = new m.Schema({
     username: { type: String, required: true },
     email: { type: String, required: true },
     firstname: { type: String, required: false },
-    password: { type: String, required: true }
+    password: { type: String, required: true },
+    created_at: {type: Date, required: true, default: Date.now },
+    updated_at: {type: Date, required: true, default: Date.now }
 });
 // UserSchema.plugin(uniqueValidator);
 const User = m.model('User', UserSchema);

@@ -5,7 +5,6 @@ $(document).ready( () => {
         event.preventDefault();
         console.log('Registering user to the database...');
         const _data = JSON.stringify( $('#signup-form').serializeToJSON() );
-        console.log(_data);
 
         $.ajax({
             method: "POST",
@@ -14,6 +13,7 @@ $(document).ready( () => {
             contentType: "application/json; charset=utf-8",
             data: _data
         }).done( msg => {
+            // msg = { status: 200, message: '' }
             console.log( "Data Saved: " + msg.message );
         }).fail( err => {
             console.log(`Error registering user - ${err}`)
